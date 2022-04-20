@@ -6,11 +6,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -19,21 +16,19 @@ type Config struct {
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 
 	postUrl := "https://slack.com/api/chat.postMessage"
-	token := os.Getenv("SLACK_TOKEN")
-	channel := os.Getenv("SLACK_CHANNEL")
+	// コマンドライン引数からメッセージを取得
+	token := flag.String("t", "", "oAuth token of slack app")
+	channel := flag.String("c", "", "slack channel name")
 	text := flag.String("m", "", "chatting text message")
 	flag.Parse()
 
-	if len(token) > 0 && len(*text) > 0 && len(channel) > 0 {
+	if len(*token) > 0 && len(*text) > 0 && len(*channel) > 0 {
+
 		values := url.Values{}
-		values.Add("token", token)
-		values.Add("channel", channel)
+		values.Add("token", *token)
+		values.Add("channel", *channel)
 		values.Add("text", *text)
 
 		client := http.Client{Timeout: time.Duration(10) * time.Second}
@@ -52,7 +47,7 @@ func main() {
 		defer res.Body.Close()
 
 	} else {
-		err := fmt.Sprintf("not set param. (t=%s, c=%s, m=%s)", token, channel, *text)
+		err := fmt.Sprintf("not set param. (t=%s, c=%s, m=%s)", *token, *channel, *text)
 		log.Fatal(err)
 		panic(err)
 	}
